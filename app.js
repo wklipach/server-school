@@ -10,6 +10,16 @@ var guideRouter = require('./routes/guide');
 
 var app = express();
 
+app.use(express.json({ limit: '50mb' }));
+// process.env.NODE_TLS_REJECT_UNAUTHORIZED='0'
+// Add headers
+app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "http://127.0.0.1:4200"); // update to match the domain you will make the request from
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
+
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
