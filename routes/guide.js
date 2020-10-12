@@ -72,6 +72,8 @@ async function insertWithSelectGuide() {
 }
 
 
+
+
 router.get('/', async function(req, res, next) {
 
     if (req.query.get_collection_check) {
@@ -99,6 +101,7 @@ router.post('/', async function(req, res) {
         const result = await  asyncInsertLessonsName(req.body.collectionName, req.body.objLessonsName);
         res.send(result);
     }
+
 });
 
 module.exports = router;
