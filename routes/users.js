@@ -51,13 +51,10 @@ async function asyncUser(sUser) {
     const client = await new MongoClient.connect(connectionString);
     try {
         const db = client.db(dbName);
-        console.log('a1');
         const resUser = await db.collection('tUser').find(
                                                             {$and: [{bitdelete: false},
                                                                   {$or: [{login: sUser}, {email: sUser}]}
                                                             ]}).toArray();
-        console.log('a2');
-        console.log('resUser=', resUser);
         return JSON.stringify(resUser);
     } catch (err) {
         return  err;
