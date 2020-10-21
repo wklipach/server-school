@@ -27,15 +27,11 @@ async function asyncCheckCollection(collection_name) {
         const arrayRes = await db.listCollections().toArray();
 
         for (index = 0; index < arrayRes.length; ++index) {
-            console.log(arrayRes[index].name);
             if (arrayRes[index].name.toString() === collection_name.toString()) {
-                console.log(arrayRes[index].name.toString(), collection_name.toString());
                 bCheck = true;
                 break;
             }
         }
-
-        console.log('bCheck=', bCheck);
         return bCheck;
 
     } finally {
@@ -72,6 +68,41 @@ async function insertWithSelectGuide() {
 }
 
 
+async function asyncGroupInnerMethod() {
+    const client = await new MongoClient.connect(connectionString);
+    try {
+        const db = client.db(dbName);
+
+        let classGroupMethod = await db.collection("classGroupMethod");
+        let classMethod = await db.collection("classMethod");
+
+        const result = await
+            classGroupMethod.aggregate([
+                { $lookup: {
+                        from:"classMethod",
+                        localField:"id_group",
+                        foreignField:"id_group",
+                        as:"new_document"
+                    } }
+            ]
+        ).toArray();
+
+        return JSON.stringify(result);
+    } finally {
+        client.close();
+    }
+}
+
+/*
+db.comments.aggregate({
+    $lookup:{
+        from:"users",
+        localField:"uid",
+        foreignField:"uid",
+        as:"users_comments"
+    }
+})
+*/
 
 
 router.get('/', async function(req, res, next) {
@@ -91,6 +122,10 @@ router.get('/', async function(req, res, next) {
         res.send(guideList);
     }
 
+    if (req.query.get_groupinnermethod) {
+        const result = await asyncGroupInnerMethod();
+        res.send(result);
+    }
 
 });
 
