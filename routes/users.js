@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var MongoClient = require('mongodb').MongoClient;
+const objectId = require("mongodb").ObjectID;
 const connectionString = 'mongodb://localhost:27017';
 const dbName = 'schooldb';
 
@@ -10,7 +11,9 @@ async function asyncNewUser(newuser) {
     try {
         const db = client.db(dbName);
 
+        console.log('newuser=', newuser);
         const curNewUser = await db.collection('tUser').insertOne(newuser);
+
         return JSON.stringify(curNewUser);
     } catch (err) {
         return  err;
@@ -48,6 +51,7 @@ async function asyncNickUser(sNick) {
 }
 
 async function asyncUser(sUser) {
+
     const client = await new MongoClient.connect(connectionString);
     try {
         const db = client.db(dbName);
@@ -63,6 +67,20 @@ async function asyncUser(sUser) {
     }
 }
 
+async function asyncUserID(mongoID) {
+    const client = await new MongoClient.connect(connectionString);
+    try {
+        mongoID = mongoID.replace(/"/g, '');
+        const curID = new objectId(mongoID);
+        const db = client.db(dbName);
+        const resUser = await db.collection('tUser').find({ _id: curID}).toArray();
+        return JSON.stringify(resUser);
+    } catch (err) {
+        return  err;
+    } finally {
+        client.close();
+    }
+}
 
 
 router.post('/', async function(req, res) {
@@ -90,6 +108,13 @@ router.get('/', async function(req, res, next) {
         const result = await asyncUser(req.query.get_user);
         res.send(result);
     }
+
+    if (req.query.get_user_id) {
+        console.log('req.query.get_user_id', req.query.get_user_id);
+        const result = await asyncUserID(req.query.get_user_id);
+        res.send(result);
+    }
+
 
 });
 
