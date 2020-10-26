@@ -52,6 +52,34 @@ async function asyncInsertLessonsName(collectionName, objLessonsName) {
     }
 }
 
+async function asyncInsertSummaryLesson(id_user, objSummaryLesson) {
+    const client = await new MongoClient.connect(connectionString);
+    id_user = id_user.replace(/"/g, '');
+
+    try {
+        const db = client.db(dbName);
+        const rsIns = await db.collection('listlessons').insertOne({id_user, objSummaryLesson});
+        const result = await db.collection('listlessons').find({id_user: id_user}).toArray();
+        return JSON.stringify(result);
+    } finally {
+        client.close();
+    }
+}
+
+
+async function asyncSelectLessonsUser(id_user) {
+    const client = await new MongoClient.connect(connectionString);
+    id_user = id_user.replace(/"/g, '');
+
+    try {
+        const db = client.db(dbName);
+        const result = await db.collection('listlessons').find({id_user: id_user}).toArray();
+        return JSON.stringify(result);
+    } finally {
+        client.close();
+    }
+}
+
 async function insertWithSelectGuide() {
     const client = await new MongoClient.connect(connectionString);
     try {
@@ -112,7 +140,13 @@ router.get('/', async function(req, res, next) {
         res.send(result);
     }
 
-    if (req.query.get_collection_test) {
+     if (req.query.get_lessons_user) {
+        const result = await asyncSelectLessonsUser(req.query.id_user);
+        res.send(result);
+    }
+
+
+        if (req.query.get_collection_test) {
         const guideList = await insertWithSelectGuide();
         res.send(guideList);
     }
@@ -134,6 +168,11 @@ router.post('/', async function(req, res) {
 
     if (req.body.insert_lessonsName) {
         const result = await  asyncInsertLessonsName(req.body.collectionName, req.body.objLessonsName);
+        res.send(result);
+    }
+
+    if (req.body.insert_summarylesson) {
+        const result = await  asyncInsertSummaryLesson(req.body.id_user, req.body.objSummaryLesson);
         res.send(result);
     }
 
