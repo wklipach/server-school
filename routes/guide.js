@@ -102,8 +102,6 @@ async function asyncGroupInnerMethod() {
         const db = client.db(dbName);
 
         let classGroupMethod = await db.collection("classGroupMethod");
-        let classMethod = await db.collection("classMethod");
-
         const result = await
             classGroupMethod.aggregate([
                 { $lookup: {
@@ -120,6 +118,30 @@ async function asyncGroupInnerMethod() {
         client.close();
     }
 }
+
+async function asyncGroupLearningActivitiesMethod() {
+    const client = await new MongoClient.connect(connectionString);
+    try {
+        const db = client.db(dbName);
+
+        let classGroup = await db.collection("classGroupLearningActivities");
+        const result = await
+            classGroup.aggregate([
+                    { $lookup: {
+                            from:"classBasicLearningActivities",
+                            localField:"id",
+                            foreignField:"id_group",
+                            as:"new_document"
+                        } }
+                ]
+            ).toArray();
+
+        return JSON.stringify(result);
+    } finally {
+        client.close();
+    }
+}
+
 
 /*
 db.comments.aggregate({
@@ -158,6 +180,11 @@ router.get('/', async function(req, res, next) {
 
     if (req.query.get_groupinnermethod) {
         const result = await asyncGroupInnerMethod();
+        res.send(result);
+    }
+
+    if (req.query.get_learningactivities) {
+        const result = await asyncGroupLearningActivitiesMethod();
         res.send(result);
     }
 
