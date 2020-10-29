@@ -67,14 +67,31 @@ async function asyncInsertSummaryLesson(id_user, objSummaryLesson) {
 }
 
 
-async function asyncSelectLessonsUser(id_user) {
+async function asyncSelectLessonsUser(id_user, current_lessons, date) {
+
+
     const client = await new MongoClient.connect(connectionString);
     id_user = id_user.replace(/"/g, '');
 
+
+    // {"date": {"$gte": from_date, "$lt": to_date}}
+
     try {
         const db = client.db(dbName);
-        const result = await db.collection('listlessons').find({id_user: id_user}).toArray();
-        return JSON.stringify(result);
+
+        let sSql = '';
+
+        if (current_lessons === 'true') {
+            const result = await db.collection('listlessons').find({$and: [{id_user: id_user}, {"objSummaryLesson.formControlDate": {$gte: date}} ]}).toArray();
+            return JSON.stringify(result);
+        }
+
+        if (current_lessons !== 'true') {
+
+            const result = await db.collection('listlessons').find({$and: [{id_user: id_user}, {"objSummaryLesson.formControlDate": {$lte: date}} ]}).toArray();
+            return JSON.stringify(result);
+        }
+
     } finally {
         client.close();
     }
@@ -163,7 +180,7 @@ router.get('/', async function(req, res, next) {
     }
 
      if (req.query.get_lessons_user) {
-        const result = await asyncSelectLessonsUser(req.query.id_user);
+        const result = await asyncSelectLessonsUser(req.query.id_user, req.query.current_lessons, req.query.date);
         res.send(result);
     }
 
