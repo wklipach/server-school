@@ -83,6 +83,24 @@ async function asyncUserID(mongoID) {
 }
 
 
+// db.tUser.find({ $and: [    {bitdelete: false}, {bitdelete: {$ne: true}}   ]})
+async function asyncUserWithoutCurrentID(mongoID) {
+    const client = await new MongoClient.connect(connectionString);
+    try {
+        mongoID = mongoID.replace(/"/g, '');
+        const curID = new objectId(mongoID);
+        const db = client.db(dbName);
+        const resUser = await db.collection('tUser')
+                                            .find({ $and: [ {bitdelete: false}, {_id: {$ne: curID}} ]}).toArray();
+
+        return JSON.stringify(resUser);
+    } catch (err) {
+        return  err;
+    } finally {
+        client.close();
+    }
+}
+
 router.post('/', async function(req, res) {
 
     if (req.body.newuser) {
@@ -114,6 +132,12 @@ router.get('/', async function(req, res, next) {
         const result = await asyncUserID(req.query.get_user_id);
         res.send(result);
     }
+
+    if (req.query.get_user_withoutcurrentid) {
+        const result = await asyncUserWithoutCurrentID(req.query.id_user);
+        res.send(result);
+    }
+
 
 
 });
