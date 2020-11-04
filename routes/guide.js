@@ -11,6 +11,7 @@ async function asyncSelectCollection(collection_name) {
     try {
         const db = client.db(dbName);
         const result = await db.collection(collection_name).find({}).toArray();
+        console.log(collection_name);
         return JSON.stringify(result);
     } finally {
         client.close();
@@ -59,8 +60,8 @@ async function asyncInsertSummaryLesson(id_user, objSummaryLesson) {
     try {
         const db = client.db(dbName);
         const rsIns = await db.collection('listlessons').insertOne({id_user, objSummaryLesson});
-        const result = await db.collection('listlessons').find({id_user: id_user}).toArray();
-        return JSON.stringify(result);
+        // const result = await db.collection('listlessons').find({id_user: id_user}).toArray();
+        return JSON.stringify(rsIns);
     } finally {
         client.close();
     }
