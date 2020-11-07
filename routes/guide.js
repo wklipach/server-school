@@ -180,6 +180,28 @@ async function asyncGroupLearningActivitiesMethod() {
     }
 }
 
+async function asyncGroupLearningActionsMethod() {
+    const client = await new MongoClient.connect(connectionString);
+    try {
+        const db = client.db(dbName);
+
+        let classGroup = await db.collection("classGroupLearningActions");
+        const result = await
+            classGroup.aggregate([
+                    { $lookup: {
+                            from:"classBasicLearningActions",
+                            localField:"id",
+                            foreignField:"id_group",
+                            as:"new_document"
+                        } }
+                ]
+            ).toArray();
+
+        return JSON.stringify(result);
+    } finally {
+        client.close();
+    }
+}
 
 /*
 db.comments.aggregate({
@@ -225,6 +247,12 @@ router.get('/', async function(req, res, next) {
         const result = await asyncGroupLearningActivitiesMethod();
         res.send(result);
     }
+
+    if (req.query.get_learningactions) {
+        const result = await asyncGroupLearningActionsMethod();
+        res.send(result);
+    }
+
 
 });
 
