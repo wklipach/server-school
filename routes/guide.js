@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var MongoClient = require('mongodb').MongoClient;
-var ObjectId = require('mongodb').ObjectID;
+const objectId = require("mongodb").ObjectID;
 const connectionString = 'mongodb://localhost:27017';
 const dbName = 'schooldb';
 
@@ -63,6 +63,22 @@ async function asyncInsertSummaryLesson(id_user, objSummaryLesson) {
         const rsIns = await db.collection('listlessons').insertOne({id_user, objSummaryLesson});
         // const result = await db.collection('listlessons').find({id_user: id_user}).toArray();
         return JSON.stringify(rsIns);
+    } finally {
+        client.close();
+    }
+}
+
+
+async function asyncLesson(id_lesson) {
+    const client = await new MongoClient.connect(connectionString);
+    try {
+        id_lesson = id_lesson.replace(/"/g, '');
+        const curID = new objectId(id_lesson);
+        const db = client.db(dbName);
+        const resLesson = await db.collection('listlessons').find({ _id: curID}).toArray();
+        return JSON.stringify(resLesson);
+    } catch (err) {
+        return  err;
     } finally {
         client.close();
     }
@@ -253,6 +269,10 @@ router.get('/', async function(req, res, next) {
         res.send(result);
     }
 
+    if (req.query.get_lesson) {
+        const result = await asyncLesson(req.query.id_lesson);
+        res.send(result);
+    }
 
 });
 
