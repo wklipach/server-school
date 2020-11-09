@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var MongoClient = require('mongodb').MongoClient;
-const objectId = require("mongodb").ObjectID;
+var objectId = require("mongodb").ObjectID;
 const connectionString = 'mongodb://localhost:27017';
 const dbName = 'schooldb';
 
@@ -88,12 +88,12 @@ async function asyncUpdateSummaryLesson(id_key, objSummaryLesson2) {
     const client = await new MongoClient.connect(connectionString);
     id_key = id_key.replace(/"/g, '');
 
-    console.log('objSummaryLesson2=', objSummaryLesson2);
+    // console.log('objSummaryLesson2=', objSummaryLesson2);
 
     try {
         const db = client.db(dbName);
         const rsIns = await db.collection('listlessons').updateOne(
-            { _id : ObjectId(id_key)},
+            { _id : objectId(id_key)},
             { $set:  {objSummaryLesson2}},
             {upsert: true}
         );
@@ -103,6 +103,21 @@ async function asyncUpdateSummaryLesson(id_key, objSummaryLesson2) {
     }
 }
 
+async function asyncUpdateSummaryLesson_1(id_key, objSummaryLesson) {
+    const client = await new MongoClient.connect(connectionString);
+    id_key = id_key.replace(/"/g, '');
+    try {
+        const db = client.db(dbName);
+        const rsIns = await db.collection('listlessons').updateOne(
+            { _id : objectId(id_key)},
+            { $set:  {objSummaryLesson}},
+            {upsert: true}
+        );
+        return JSON.stringify(rsIns);
+    } finally {
+        client.close();
+    }
+}
 
 async function asyncSelectLessonsUser(id_user, current_lessons, date) {
 
@@ -294,6 +309,10 @@ router.post('/', async function(req, res) {
         res.send(result);
     }
 
+    if (req.body.update_summarylesson_1) {
+        const result = await  asyncUpdateSummaryLesson_1(req.body.id_key, req.body.objSummaryLesson);
+        res.send(result);
+    }
 
 });
 
