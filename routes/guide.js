@@ -84,6 +84,26 @@ async function asyncLesson(id_lesson) {
     }
 }
 
+async function asyncThemeLesson(id_lesson) {
+    const client = await new MongoClient.connect(connectionString);
+    try {
+        id_lesson = id_lesson.replace(/"/g, '');
+        const curID = new objectId(id_lesson);
+        const db = client.db(dbName);
+
+        console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+
+        const resLesson = await db.collection('listlessons').find({ _id: curID}, {fields: {'objSummaryLesson.documentTypeLesson': true}}).toArray();
+        console.log('resLesson=', resLesson);
+        return JSON.stringify(resLesson);
+    } catch (err) {
+        return  err;
+    } finally {
+        client.close();
+    }
+}
+
+
 async function asyncUpdateSummaryLesson(id_key, objSummaryLesson2) {
     const client = await new MongoClient.connect(connectionString);
     id_key = id_key.replace(/"/g, '');
@@ -134,13 +154,15 @@ async function asyncSelectLessonsUser(id_user, current_lessons, date) {
         let sSql = '';
 
         if (current_lessons === 'true') {
-            const result = await db.collection('listlessons').find({$and: [{id_user: id_user}, {"objSummaryLesson.formControlDate": {$gte: date}} ]}).toArray();
+            const result = await db.collection('listlessons').find({$and: [{id_user: id_user}, {"objSummaryLesson.formControlDate": {$gte: date}} ]})
+                                                             .sort({"objSummaryLesson.formControlDate": -1}).toArray();
             return JSON.stringify(result);
         }
 
         if (current_lessons !== 'true') {
 
-            const result = await db.collection('listlessons').find({$and: [{id_user: id_user}, {"objSummaryLesson.formControlDate": {$lte: date}} ]}).toArray();
+            const result = await db.collection('listlessons').find({$and: [{id_user: id_user}, {"objSummaryLesson.formControlDate": {$lte: date}} ]})
+                                                             .sort({"objSummaryLesson.formControlDate": -1}).toArray();
             return JSON.stringify(result);
         }
 
@@ -286,6 +308,11 @@ router.get('/', async function(req, res, next) {
 
     if (req.query.get_lesson) {
         const result = await asyncLesson(req.query.id_lesson);
+        res.send(result);
+    }
+
+    if (req.query.get_theme_lesson) {
+        const result = await asyncThemeLesson(req.query.id_lesson);
         res.send(result);
     }
 
