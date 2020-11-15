@@ -68,6 +68,16 @@ async function asyncInsertSummaryLesson(id_user, objSummaryLesson) {
     }
 }
 
+async function asyncInsertManyLesson(arrResult) {
+    const client = await new MongoClient.connect(connectionString);
+    try {
+        const db = client.db(dbName);
+        const rsIns = await db.collection('listlessons').insertMany(arrResult);
+        return JSON.stringify(rsIns);
+    } finally {
+        client.close();
+    }
+}
 
 async function asyncLesson(id_lesson) {
     const client = await new MongoClient.connect(connectionString);
@@ -328,6 +338,11 @@ router.post('/', async function(req, res) {
 
     if (req.body.insert_summarylesson) {
         const result = await  asyncInsertSummaryLesson(req.body.id_user, req.body.objSummaryLesson);
+        res.send(result);
+    }
+
+    if (req.body.insert_manylessons) {
+        const result = await  asyncInsertManyLesson(req.body.arrResult);
         res.send(result);
     }
 
