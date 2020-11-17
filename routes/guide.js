@@ -2,17 +2,14 @@ var express = require('express');
 var router = express.Router();
 var MongoClient = require('mongodb').MongoClient;
 var objectId = require("mongodb").ObjectID;
-const connectionString = 'mongodb://localhost:27017';
-const dbName = 'schooldb';
-
-
+const connectionString =  require('../DB').connectionString;
+const dbName =  require('../DB').dbName;
 
 async function asyncSelectCollection(collection_name) {
     const client = await new MongoClient.connect(connectionString);
     try {
         const db = client.db(dbName);
         const result = await db.collection(collection_name).find({}).toArray();
-        console.log(collection_name);
         return JSON.stringify(result);
     } finally {
         client.close();
@@ -100,11 +97,7 @@ async function asyncThemeLesson(id_lesson) {
         id_lesson = id_lesson.replace(/"/g, '');
         const curID = new objectId(id_lesson);
         const db = client.db(dbName);
-
-        console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-
         const resLesson = await db.collection('listlessons').find({ _id: curID}, {fields: {'objSummaryLesson.documentTypeLesson': true}}).toArray();
-        console.log('resLesson=', resLesson);
         return JSON.stringify(resLesson);
     } catch (err) {
         return  err;
@@ -117,8 +110,6 @@ async function asyncThemeLesson(id_lesson) {
 async function asyncUpdateSummaryLesson(id_key, objSummaryLesson2) {
     const client = await new MongoClient.connect(connectionString);
     id_key = id_key.replace(/"/g, '');
-
-    // console.log('objSummaryLesson2=', objSummaryLesson2);
 
     try {
         const db = client.db(dbName);

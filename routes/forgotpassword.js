@@ -5,8 +5,8 @@ var Message = require('emailjs').Message;
 var SMTPClient = require('emailjs').SMTPClient;
 var connectionSMTP = require('../SMTPServer');
 var MongoClient = require('mongodb').MongoClient;
-const connectionString = 'mongodb://localhost:27017';
-const dbName = 'schooldb';
+const connectionString =  require('../DB').connectionString;
+const dbName =  require('../DB').dbName;
 
 
 

@@ -2,18 +2,14 @@ var express = require('express');
 var router = express.Router();
 var MongoClient = require('mongodb').MongoClient;
 const objectId = require("mongodb").ObjectID;
-const connectionString = 'mongodb://localhost:27017';
-const dbName = 'schooldb';
-
+const connectionString =  require('../DB').connectionString;
+const dbName =  require('../DB').dbName;
 
 async function asyncNewUser(newuser) {
     const client = await new MongoClient.connect(connectionString);
     try {
         const db = client.db(dbName);
-
-        console.log('newuser=', newuser);
         const curNewUser = await db.collection('tUser').insertOne(newuser);
-
         return JSON.stringify(curNewUser);
     } catch (err) {
         return  err;
@@ -41,7 +37,6 @@ async function asyncNickUser(sNick) {
     try {
         const db = client.db(dbName);
         const resNick = await db.collection('tUser').find({$and: [{login: sNick}, {bitdelete: false}]}).toArray();
-        console.log('resNick=', resNick.length);
         return JSON.stringify(resNick.length);
     } catch (err) {
         return  err;
@@ -128,7 +123,6 @@ router.get('/', async function(req, res, next) {
     }
 
     if (req.query.get_user_id) {
-        console.log('req.query.get_user_id', req.query.get_user_id);
         const result = await asyncUserID(req.query.get_user_id);
         res.send(result);
     }
