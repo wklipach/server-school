@@ -65,6 +65,33 @@ async function asyncInsertSummaryLesson(id_user, objSummaryLesson) {
     }
 }
 
+async function asyncInsertCopyLesson(id_lesson) {
+    const client = await new MongoClient.connect(connectionString);
+    try {
+        const db = client.db(dbName);
+        const resLesson = await db.collection('listlessons').find({ _id: new objectId(id_lesson)}).toArray();
+        const newLesson = {};
+
+        if (resLesson.length > 0) {
+            if (resLesson[0].id_user) {
+                newLesson.id_user = resLesson[0].id_user;
+            }
+            if (resLesson[0].objSummaryLesson) {
+                newLesson.objSummaryLesson = resLesson[0].objSummaryLesson;
+                newLesson.objSummaryLesson.lessonTopic = 'Копия '+ newLesson.objSummaryLesson.lessonTopic;
+            }
+            if (resLesson[0].objSummaryLesson2) {
+                newLesson.objSummaryLesson2 = resLesson[0].objSummaryLesson2;
+            }
+        }
+
+        const rsIns = await db.collection('listlessons').insertOne(newLesson);
+        return JSON.stringify(rsIns);
+    } finally {
+        client.close();
+    }
+}
+
 async function asyncInsertManyLesson(arrResult) {
     const client = await new MongoClient.connect(connectionString);
     try {
@@ -336,6 +363,12 @@ router.post('/', async function(req, res) {
         const result = await  asyncInsertManyLesson(req.body.arrResult);
         res.send(result);
     }
+
+    if (req.body.insert_copylesson) {
+        const result = await  asyncInsertCopyLesson(req.body.id_lesson);
+        res.send(result);
+    }
+
 
     if (req.body.update_summarylesson) {
         const result = await  asyncUpdateSummaryLesson(req.body.id_key, req.body.objSummaryLesson2);
