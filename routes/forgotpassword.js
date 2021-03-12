@@ -46,12 +46,18 @@ async function asyncNewPasswordSend (hash, email, pwd) {
 
     const client = await new MongoClient.connect(connectionString);
     try {
+
+        console.log('s1');
         const db = client.db(dbName);
         //const curNewUser = await db.collection('tUser').update({_id: ObjectId("562dbdc57d0175ee0f8b4569")}, {$set: {password: hash}});
-        const curUpdateUser = await db.collection('tUser').update({email: email}, {$set: {password: hash}});
+        const curUpdateUser = await db.collection('tUser').updateOne({email: email}, {$set: {password: hash}});
         //2TA2qanMSQba
 
+        console.log('s2');
+
         sendMessage(email, pwd);
+
+        console.log('s3');
 
         console.log('email=', email, 'pwd=',  pwd, 'hash=', hash);
 

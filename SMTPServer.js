@@ -1,10 +1,10 @@
 var connectionSMTP = {
-    user:	"k*******@mail.ru",
-    password:"**********************",
-    host:	"smtp.mail.ru",
+    user: "***@mail.ru",
+    password:"NEdeslp6",
+    host: "smtp.mail.ru",
     port: "465",
-    ssl:		true,
-    userForFromLetter: "k*****@mail.ru",
-    subject: "Письмо с паролем"
+    ssl:                     true,
+    userForFromLetter: "***@mail.ru",
+    subject: "Ваш новый пароль"
 };
 module.exports=connectionSMTP;
