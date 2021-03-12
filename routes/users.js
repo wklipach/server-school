@@ -32,6 +32,37 @@ async function asyncEmailUser(sEmail) {
     }
 }
 
+async function asyncSchoolUsers(school, fio, slogin) {
+
+    if (!fio && slogin) {
+        fio = 'nonestring';
+    }
+
+    if (fio && !slogin) {
+        slogin = 'nonestring';
+    }
+
+    const client = await new MongoClient.connect(connectionString);
+    try {
+        const db = client.db(dbName);
+        //const resUsers = await db.collection('tUser').find({$and: [{email: sEmail}, {bitdelete: false}]}).toArray();
+        const resUsers = await db.collection('tUser').find(
+            {
+                $and:[ {$or:[{fio: {$regex: fio}}, {login: {$regex: slogin}}]},
+                    {organization: school},
+                    {bitdelete: false}
+                ]
+            }
+        ).toArray();
+
+        return JSON.stringify(resUsers);
+    } catch (err) {
+        return  err;
+    } finally {
+        client.close();
+    }
+}
+
 async function asyncNickUser(sNick) {
     const client = await new MongoClient.connect(connectionString);
     try {
@@ -104,8 +135,14 @@ router.post('/', async function(req, res) {
     }
 });
 
+
 /* GET users listing. */
 router.get('/', async function(req, res, next) {
+
+    if (req.query.get_user_school) {
+        const schoolUsers = await asyncSchoolUsers(req.query.school, req.query.fio, req.query.slogin);
+        res.send(schoolUsers);
+    }
 
     if (req.query.get_email_user) {
         const emailUser = await asyncEmailUser(req.query.get_email_user);
