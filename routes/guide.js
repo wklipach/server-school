@@ -167,8 +167,16 @@ async function asyncUpdateSummaryLesson_1(id_key, objSummaryLesson) {
     }
 }
 
-async function asyncSelectLessonsUser(id_user, current_lessons, date) {
+async function asyncSelectLessonsUser(id_user, current_lessons, date, uLessonObjectives, uLessonTopic) {
 
+
+    if (uLessonObjectives === 'nonestring') {
+        uLessonObjectives = '';
+    }
+
+    if (uLessonTopic === 'nonestring') {
+        uLessonTopic = '';
+    }
 
     const client = await new MongoClient.connect(connectionString);
     id_user = id_user.replace(/"/g, '');
@@ -182,8 +190,24 @@ async function asyncSelectLessonsUser(id_user, current_lessons, date) {
         let sSql = '';
 
         if (current_lessons === 'true') {
-            const result = await db.collection('listlessons').find({$and: [{id_user: id_user}, {"objSummaryLesson.formControlDate": {$gte: date}} ]})
-                                                             .sort({"objSummaryLesson.formControlDate": -1}).toArray();
+            let result = await db.collection('listlessons').find({$and: [{id_user: id_user}, 
+                                                                   {"objSummaryLesson.formControlDate": {$gte: date}} ]})
+                                                                   .sort({"objSummaryLesson.formControlDate": -1})
+                                                                   .toArray();
+
+            if (uLessonObjectives !== 'nonestring') {
+                result = result.filter(e => {
+                    return e.objSummaryLesson.lessonObjectives.indexOf(uLessonObjectives) > -1;
+                });
+            }
+    
+            if (uLessonTopic !== 'nonestring') {
+                result = result.filter(e => {
+                    return e.objSummaryLesson.lessonTopic.indexOf(uLessonTopic) > -1;
+                });
+            }
+
+
             return JSON.stringify(result);
         }
 
@@ -304,7 +328,11 @@ router.get('/', async function(req, res, next) {
     }
 
      if (req.query.get_lessons_user) {
-        const result = await asyncSelectLessonsUser(req.query.id_user, req.query.current_lessons, req.query.date);
+        const result = await asyncSelectLessonsUser(req.query.id_user, 
+                                                    req.query.current_lessons, 
+                                                     req.query.date,
+                                                     req.query.uLessonObjectives, 
+                                                     req.query.uLessonTopic);
         res.send(result);
     }
 
