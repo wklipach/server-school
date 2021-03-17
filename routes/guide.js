@@ -65,6 +65,17 @@ async function asyncInsertSummaryLesson(id_user, objSummaryLesson) {
     }
 }
 
+async function asyncDeleteLesson(id_lesson) {
+    const client = await new MongoClient.connect(connectionString);
+    try {
+        const db = client.db(dbName);
+        const rsIns = await db.collection('listlessons').deleteOne({ _id: new objectId(id_lesson)});
+        return JSON.stringify(rsIns);
+    } finally {
+        client.close();
+    }
+}
+
 async function asyncInsertCopyLesson(id_lesson) {
     const client = await new MongoClient.connect(connectionString);
     try {
@@ -397,6 +408,10 @@ router.post('/', async function(req, res) {
         res.send(result);
     }
 
+    if (req.body.deletelesson) {
+        const result = await  asyncDeleteLesson(req.body.id_lesson);
+        res.send(result);
+    }
 
     if (req.body.update_summarylesson) {
         const result = await  asyncUpdateSummaryLesson(req.body.id_key, req.body.objSummaryLesson2);
