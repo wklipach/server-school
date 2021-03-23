@@ -178,8 +178,18 @@ async function asyncUpdateSummaryLesson_1(id_key, objSummaryLesson) {
     }
 }
 
-async function asyncSelectLessonsUser(id_user, current_lessons, date, uLessonObjectives, uLessonTopic) {
+async function asyncSelectLessonsUser(id_user, current_lessons, date, uLessonObjectives, 
+                                                                     uLessonTopic, 
+                                                                     uLesson,
+                                                                     uClass)  {
 
+    if (uLesson === 'nonestring') {
+       uLesson = '';
+    }
+
+    if (uClass === 'nonestring') {
+        uClass = '';
+    }
 
     if (uLessonObjectives === 'nonestring') {
         uLessonObjectives = '';
@@ -188,6 +198,11 @@ async function asyncSelectLessonsUser(id_user, current_lessons, date, uLessonObj
     if (uLessonTopic === 'nonestring') {
         uLessonTopic = '';
     }
+
+    uLessonObjectives = uLessonObjectives.toLowerCase();
+    uLessonTopic= uLessonTopic.toLowerCase();
+    uLesson = uLesson.toLowerCase();
+    uClass = uClass.toLowerCase();
 
     const client = await new MongoClient.connect(connectionString);
     id_user = id_user.replace(/"/g, '');
@@ -206,15 +221,47 @@ async function asyncSelectLessonsUser(id_user, current_lessons, date, uLessonObj
                                                                    .sort({"objSummaryLesson.formControlDate": -1})
                                                                    .toArray();
 
-            if (uLessonObjectives !== 'nonestring') {
+            if (uLessonObjectives) {
                 result = result.filter(e => {
-                    return e.objSummaryLesson.lessonObjectives.indexOf(uLessonObjectives) > -1;
+                    return e.objSummaryLesson.lessonObjectives.toLowerCase().indexOf(uLessonObjectives) > -1;
                 });
             }
     
-            if (uLessonTopic !== 'nonestring') {
+            if (uLessonTopic) {
                 result = result.filter(e => {
-                    return e.objSummaryLesson.lessonTopic.indexOf(uLessonTopic) > -1;
+                    return e.objSummaryLesson.lessonTopic.toLowerCase().indexOf(uLessonTopic) > -1;
+                });
+            }
+
+            if (uClass) {
+                result = result.filter(e => {
+                    let sClassNumber = e.objSummaryLesson.documentClassNameNumber.title;
+                    let sClassLetter = e.objSummaryLesson.documentClassNameLetter.title;
+                    if (sClassNumber === "--") {
+                        sClassNumber  = "";
+                    }
+                    if (sClassLetter === "--") {
+                        sClassLetter  = "";
+                    }
+
+                    let sBase = sClassNumber + sClassLetter;
+                    if (!sBase) {
+                         sBase = 'nonestring';
+                    }
+                    return (sBase).toLowerCase().indexOf(uClass) > -1;
+                });
+            }
+
+            if (uLesson) {
+                result = result.filter(e => {
+                    
+                    let sBase = 'nonestring';
+                    if (e.objSummaryLesson.documentLessons && e.objSummaryLesson.documentLessons.title) {
+                       sBase = e.objSummaryLesson.documentLessons.title
+                   }
+
+                       return sBase.toLowerCase().indexOf(uLesson) > -1;
+                    
                 });
             }
 
@@ -343,7 +390,9 @@ router.get('/', async function(req, res, next) {
                                                     req.query.current_lessons, 
                                                      req.query.date,
                                                      req.query.uLessonObjectives, 
-                                                     req.query.uLessonTopic);
+                                                     req.query.uLessonTopic,
+                                                     req.query.uLesson, 
+                                                     req.query.uClass);
         res.send(result);
     }
 
