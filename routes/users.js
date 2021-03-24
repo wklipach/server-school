@@ -48,8 +48,8 @@ async function asyncSchoolUsers(school, fio, slogin) {
         //const resUsers = await db.collection('tUser').find({$and: [{email: sEmail}, {bitdelete: false}]}).toArray();
         const resUsers = await db.collection('tUser').find(
             {
-                $and:[ {$or:[{fio: {$regex: fio}}, {login: {$regex: slogin}}]},
-                    {organization: school},
+                $and:[ {$or:[{fio: {$regex: fio, $options: 'i'}}, {login: {$regex: slogin, $options: 'i'}}]},
+                    {organization: {$regex: school, $options: 'i'}},
                     {bitdelete: false}
                 ]
             }
